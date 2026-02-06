@@ -203,7 +203,7 @@
                     android:backgroundTint="@color/white"
                     android:hint="0"
                     android:textColorHint="#888"
-                    android:textColor="@color/white"
+                    android:textColor="@color/black"
                     android:inputType="numberDecimal"
                     android:paddingHorizontal="12dp"/>
 
