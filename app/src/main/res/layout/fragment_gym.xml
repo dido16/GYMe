@@ -5,16 +5,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gym_black_background">
+    android:background="#121212"> <LinearLayout
+    android:id="@+id/headerSection"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#1E1E1E"
+    app:layout_constraintTop_toTopOf="parent">
 
     <LinearLayout
-        android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="24dp"
-        app:layout_constraintTop_toTopOf="parent">
+        android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -23,116 +27,78 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/tvGreeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="GYM DAILY"
-                android:textColor="@color/gym_accent"
-                android:textSize="28sp"
-                android:fontFamily="sans-serif-black"
-                android:letterSpacing="0.05"/>
+                android:text="Let's crush it! 💪"
+                android:textColor="#888"
+                android:textSize="14sp"/>
 
             <TextView
+                android:id="@+id/tvWorkoutTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Let's build that muscle."
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                tools:text="MONDAY • PUSH"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-black"/>
         </LinearLayout>
 
-        <ImageView
+        <ImageButton
             android:id="@+id/btnProfile"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@android:drawable/ic_menu_manage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/circle_background_dark"
+            android:src="@android:drawable/ic_menu_my_calendar"
             app:tint="@color/white"/>
-
     </LinearLayout>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardCalories"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
+        android:orientation="horizontal"
         android:layout_marginTop="16dp"
-        app:cardBackgroundColor="@color/gym_dark_card"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout">
+        android:background="@drawable/capsule_bg"
+        android:padding="12dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:layout_weight="1"
+            android:text="Target Kalori Harian"
+            android:textColor="#BBB"
+            android:textSize="12sp"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@android:drawable/ic_menu_my_calendar"
-                    app:tint="@color/gym_accent"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="TARGET HARIAN"
-                    android:layout_marginStart="12dp"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.1"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_secondary"/>
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvCalorieTarget"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 KCAL"
-                android:layout_marginTop="8dp"
-                android:textSize="36sp"
-                android:fontFamily="sans-serif-black"
-                android:textColor="@color/text_primary"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#33FFFFFF"
-                android:layout_marginVertical="16dp"/>
-
-            <TextView
-                android:id="@+id/tvBmiInfo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="BMI Status: Loading..."
-                android:textSize="14sp"
-                android:textColor="@color/gym_accent"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        <TextView
+            android:id="@+id/tvCalorieTarget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="2500 KCAL"
+            android:textColor="@color/gym_accent"
+            android:textStyle="bold"/>
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/tvWorkoutTitle"
+        android:id="@+id/tvBmiInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TODAY'S WORKOUT"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardCalories"/>
+        tools:text="BMI: Normal"
+        android:textColor="#666"
+        android:textSize="10sp"
+        android:layout_marginTop="4dp"
+        android:layout_gravity="end"/>
+
+</LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvWorkout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvWorkoutTitle"
+        android:paddingTop="8dp"
+        android:paddingBottom="80dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/headerSection"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -141,10 +107,45 @@
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
         android:src="@android:drawable/ic_input_add"
-        android:contentDescription="Tambah Latihan"
-        app:backgroundTint="@color/gym_accent"
+        android:backgroundTint="@color/gym_accent"
         app:tint="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+    <LinearLayout
+        android:id="@+id/layoutEmptyState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            app:tint="#333"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rest Day or New Day?"
+            android:textColor="#666"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No workouts scheduled yet.\nTap + to create one!"
+            android:textColor="#444"
+            android:gravity="center"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

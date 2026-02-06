@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +14,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -24,7 +28,7 @@ import androidx.work.WorkManager
 import com.example.gyme.adapter.WorkoutAdapter
 import com.example.gyme.data.AppDatabase
 import com.example.gyme.data.Workout
-import com.example.gyme.databinding.FragmentGymBinding // PENTING: Binding Fragment
+import com.example.gyme.databinding.FragmentGymBinding
 import com.example.gyme.worker.ReminderWorker
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -32,14 +36,12 @@ import java.util.concurrent.TimeUnit
 
 class GymFragment : Fragment() {
 
-    // Setup Binding untuk Fragment (Agak beda dikit dari Activity)
     private var _binding: FragmentGymBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var database: AppDatabase
     private lateinit var adapter: WorkoutAdapter
 
-    // 1. Inflate Layout
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -48,14 +50,11 @@ class GymFragment : Fragment() {
         return binding.root
     }
 
-    // 2. Logika Utama (Pengganti onCreate)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Init Database (Ganti 'this' dengan 'requireContext()')
         database = AppDatabase.getDatabase(requireContext())
 
-        // Init RecyclerView
         adapter = WorkoutAdapter(
             list = emptyList(),
             onCheckChanged = { workout ->
@@ -64,54 +63,109 @@ class GymFragment : Fragment() {
                 }
             },
             onDeleteRequest = { workout ->
-                showDeleteConfirmation(workout)
+                // Panggil Custom Dialog Keren
+                showCustomAlert(
+                    title = "Hapus Latihan?",
+                    message = "Kamu yakin ingin menghapus '${workout.exerciseName}'? Data ini tidak bisa dikembalikan.",
+                    positiveText = "YA, HAPUS",
+                    negativeText = "BATAL",
+                    onPositiveClick = {
+                        lifecycleScope.launch {
+                            database.workoutDao().delete(workout)
+                            setupDatabaseAndLoadWorkout()
+                            Toast.makeText(requireContext(), "Latihan dihapus!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
             }
         )
 
         binding.rvWorkout.layoutManager = LinearLayoutManager(requireContext())
         binding.rvWorkout.adapter = adapter
 
-        // Setup Tombol Profil
         binding.btnProfile.setOnClickListener {
             val intent = Intent(requireContext(), ProfileActivity::class.java)
             startActivity(intent)
         }
 
-        // Setup Tombol (+)
         binding.fabAdd.setOnClickListener {
             showAddWorkoutDialog()
         }
 
-        // Setup Notifikasi
         checkNotificationPermission()
         setupDailyReminder()
+
+        // Update sapaan selamat pagi/siang/malam
+        updateGreeting()
     }
 
     override fun onResume() {
         super.onResume()
         loadUserData()
         setupDatabaseAndLoadWorkout()
+        updateGreeting()
     }
 
-    // --- FITUR HAPUS LATIHAN ---
-    private fun showDeleteConfirmation(workout: Workout) {
-        AlertDialog.Builder(requireContext()) // Ganti 'this' jadi requireContext()
-            .setTitle("Hapus Latihan?")
-            .setMessage("Kamu yakin ingin menghapus '${workout.exerciseName}' dari jadwal?")
-            .setPositiveButton("Hapus") { _, _ ->
-                lifecycleScope.launch {
-                    database.workoutDao().delete(workout)
-                    setupDatabaseAndLoadWorkout()
-                    Toast.makeText(requireContext(), "Latihan dihapus!", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Batal", null)
-            .show()
+    // --- LOGIKA SAPAAN (GREETING) ---
+    private fun updateGreeting() {
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+
+        val greeting = when (hour) {
+            in 0..11 -> "Good Morning! ☀️"
+            in 12..17 -> "Good Afternoon! 🔥"
+            else -> "Good Evening! 🌙"
+        }
+        binding.tvGreeting.text = greeting
     }
 
-    // --- DIALOG TAMBAH LATIHAN ---
+    // --- CUSTOM DIALOG KEREN (Sama seperti DetailActivity) ---
+    private fun showCustomAlert(
+        title: String,
+        message: String,
+        positiveText: String = "Oke",
+        negativeText: String? = null,
+        onPositiveClick: () -> Unit
+    ) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alert, null)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
+        val tvMessage = dialogView.findViewById<TextView>(R.id.tvDialogMessage)
+        val btnPositive = dialogView.findViewById<Button>(R.id.btnDialogPositive)
+        val btnNegative = dialogView.findViewById<Button>(R.id.btnDialogNegative)
+        // val imgIcon = dialogView.findViewById<ImageView>(R.id.imgDialogIcon) // Bisa ganti icon kalau mau
+
+        tvTitle.text = title
+        tvMessage.text = message
+        btnPositive.text = positiveText
+
+        if (negativeText == null) {
+            btnNegative.visibility = View.GONE
+        } else {
+            btnNegative.text = negativeText
+        }
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setView(dialogView)
+        val dialog = builder.create()
+
+        // Bikin background transparan agar rounded corner terlihat
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        btnPositive.setOnClickListener {
+            onPositiveClick()
+            dialog.dismiss()
+        }
+
+        btnNegative.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    // --- DIALOG TAMBAH LATIHAN (Standard Dialog tapi dikasih background transparan) ---
     private fun showAddWorkoutDialog() {
-        // Ganti LayoutInflater.from(this) jadi requireContext()
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_workout, null)
 
         val etName = dialogView.findViewById<EditText>(R.id.etExerciseName)
@@ -180,7 +234,6 @@ class GymFragment : Fragment() {
     }
 
     private fun loadUserData() {
-        // Ganti getSharedPreferences dengan requireActivity().getSharedPreferences
         val sharedPref = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val weight = sharedPref.getFloat("weight", 60f)
         val height = sharedPref.getFloat("height", 170f)
@@ -223,15 +276,28 @@ class GymFragment : Fragment() {
                 else -> "Sunday"
             }
 
-            binding.tvWorkoutTitle.text = "PROGRAM LATIHAN: $dayName"
+            // Update Judul agar lebih tegas (Uppercase)
+            val displayDay = when (dayOfWeek) {
+                Calendar.MONDAY -> "MONDAY"
+                Calendar.TUESDAY -> "TUESDAY"
+                Calendar.WEDNESDAY -> "WEDNESDAY"
+                Calendar.THURSDAY -> "THURSDAY"
+                Calendar.FRIDAY -> "FRIDAY"
+                Calendar.SATURDAY -> "SATURDAY"
+                else -> "SUNDAY"
+            }
+            binding.tvWorkoutTitle.text = "$displayDay PROGRAM"
 
             val workouts = database.workoutDao().getWorkoutsByDay(dayName)
 
             if (workouts.isNotEmpty()) {
                 adapter.updateData(workouts)
+                binding.layoutEmptyState.visibility = View.GONE // Sembunyikan Empty State
+                binding.rvWorkout.visibility = View.VISIBLE
             } else {
-                Toast.makeText(requireContext(), "Hari ini Rest Day! Istirahatlah.", Toast.LENGTH_SHORT).show()
                 adapter.updateData(emptyList())
+                binding.layoutEmptyState.visibility = View.VISIBLE // Tampilkan Empty State
+                binding.rvWorkout.visibility = View.GONE
             }
         }
     }
@@ -246,7 +312,6 @@ class GymFragment : Fragment() {
     }
 
     private fun setupDailyReminder() {
-        // WorkManager butuh context
         val workManager = WorkManager.getInstance(requireContext())
         val currentDate = Calendar.getInstance()
         val dueDate = Calendar.getInstance()
@@ -273,7 +338,6 @@ class GymFragment : Fragment() {
         )
     }
 
-    // Data dummy tetap sama, tidak ada perubahan logika
     private suspend fun populateDatabase() {
         val dummyData = listOf(
             // --- SENIN (PUSH) ---
@@ -465,7 +529,6 @@ class GymFragment : Fragment() {
         database.workoutDao().insertAll(dummyData)
     }
 
-    // PENTING: Hapus binding saat view hancur biar ga bocor memori
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

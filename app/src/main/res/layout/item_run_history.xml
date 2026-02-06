@@ -1,56 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
-    app:cardBackgroundColor="#2A2A2A"
-    app:cardCornerRadius="8dp">
+    android:layout_marginVertical="6dp"
+    android:layout_marginHorizontal="4dp"
+    app:cardBackgroundColor="#1E1E1E"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        android:orientation="horizontal">
+        android:padding="16dp">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_mapmode"
-            app:tint="@color/gym_accent" />
+        <FrameLayout
+            android:id="@+id/iconContainer"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_background_dark"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_menu_mapmode"
+                app:tint="@color/gym_accent" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            tools:text="Minggu, 12 Jan 2026 16:30"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="@id/iconContainer"
+            app:layout_constraintStart_toEndOf="@id/iconContainer"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteRun"/>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Minggu, 12 Jan 2026"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:textSize="14sp"/>
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toBottomOf="@id/tvDate"
+            app:layout_constraintStart_toStartOf="@id/tvDate"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteRun">
 
             <TextView
                 android:id="@+id/tvRunDistance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- 5.24 km"
-                android:textColor="#BBB"
-                android:textSize="12sp"/>
+                tools:text="5.24 km"
+                android:textColor="@color/gym_accent"
+                android:textStyle="bold"
+                android:textSize="13sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • "
+                android:textColor="#666"/>
 
             <TextView
                 android:id="@+id/tvRunDuration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- ⏱ 30m 12s"
+                tools:text="30m 12s"
                 android:textColor="#BBB"
-                android:textSize="12sp"/>
+                android:textSize="13sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • "
+                android:textColor="#666"/>
+
+            <TextView
+                android:id="@+id/tvRunCalories"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="🔥 150"
+                android:textColor="#FF5722"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
 
         </LinearLayout>
 
@@ -60,7 +102,11 @@
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_delete"
-            app:tint="#FF4444"/>
+            app:tint="#666666"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.cardview.widget.CardView>

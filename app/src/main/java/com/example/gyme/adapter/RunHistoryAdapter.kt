@@ -42,6 +42,8 @@ class RunHistoryAdapter(
 
         holder.binding.tvRunDuration.text = durationText
 
+        holder.binding.tvRunCalories.text = "🔥 ${item.caloriesBurned}"
+
         holder.binding.btnDeleteRun.setOnClickListener {
             onDeleteClick(item)
         }

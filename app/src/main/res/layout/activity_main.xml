@@ -20,8 +20,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#1E1E1E"
-        app:itemIconTint="@color/white"
+        app:itemIconTint="@color/gym_accent"
         app:itemTextColor="@color/white"
+        app:itemRippleColor="#333"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"/>
 

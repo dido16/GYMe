@@ -2,6 +2,7 @@ package com.example.gyme
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
@@ -40,11 +41,14 @@ class TrackerFragment : Fragment() {
     // Variabel Tracking
     private var isTracking = false
     private var totalDistance = 0.0
+    private var caloriesBurned = 0 // Variabel Kalori
+    private var userWeight = 60f   // Default berat badan
+
     private var pathPoints = mutableListOf<GeoPoint>()
     private lateinit var locationCallback: LocationCallback
     private var runPolyline: Polyline? = null
 
-    // --- VARIABEL TIMER ---
+    // Variabel Timer
     private var startTime = 0L
     private var timerHandler = Handler(Looper.getMainLooper())
     private var timerRunnable: Runnable = object : Runnable {
@@ -53,14 +57,10 @@ class TrackerFragment : Fragment() {
             val seconds = (millis / 1000).toInt()
             val minutes = seconds / 60
             val hours = minutes / 60
-
-            // Format 00:00:00
             binding.tvTimer.text = String.format("%02d:%02d:%02d", hours, minutes % 60, seconds % 60)
-
-            timerHandler.postDelayed(this, 1000) // Update setiap 1 detik
+            timerHandler.postDelayed(this, 1000)
         }
     }
-    // ---------------------
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -79,22 +79,22 @@ class TrackerFragment : Fragment() {
 
         database = AppDatabase.getDatabase(requireContext())
         setupMap()
+
+        // AMBIL BERAT BADAN USER
+        val sharedPref = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        userWeight = sharedPref.getFloat("weight", 60f) // Ambil berat, default 60kg
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         setupLocationCallback()
 
         binding.btnStartRun.setOnClickListener {
-            if (isTracking) {
-                stopTracking()
-            } else {
-                checkPermissionAndStart()
-            }
+            if (isTracking) stopTracking() else checkPermissionAndStart()
         }
 
-        binding.btnHistory.setOnClickListener {
-            showHistoryDialog()
-        }
+        binding.btnHistory.setOnClickListener { showHistoryDialog() }
     }
 
+    // ... (setupMap, setupLocationCallback SAMA) ...
     private fun setupMap() {
         binding.mapView.setTileSource(TileSourceFactory.MAPNIK)
         binding.mapView.setMultiTouchControls(true)
@@ -107,32 +107,30 @@ class TrackerFragment : Fragment() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 if (!isTracking) return
-                for (location in locationResult.locations) {
-                    updateTrack(location)
-                }
+                for (location in locationResult.locations) updateTrack(location)
             }
         }
     }
 
     private fun updateTrack(location: Location) {
-        if (!location.hasAccuracy()) return
-        if (location.accuracy > 30) return
+        if (!location.hasAccuracy() || location.accuracy > 30) return
 
         val newPoint = GeoPoint(location.latitude, location.longitude)
 
         if (pathPoints.isNotEmpty()) {
             val lastPoint = pathPoints.last()
             val result = FloatArray(1)
-            Location.distanceBetween(
-                lastPoint.latitude, lastPoint.longitude,
-                newPoint.latitude, newPoint.longitude,
-                result
-            )
+            Location.distanceBetween(lastPoint.latitude, lastPoint.longitude, newPoint.latitude, newPoint.longitude, result)
 
             val distanceInMeters = result[0]
             if (distanceInMeters < 3) return
 
             totalDistance += distanceInMeters / 1000.0
+
+            // --- HITUNG KALORI REAL-TIME ---
+            // Rumus: Jarak (km) * Berat (kg) * 1.036
+            val kcal = totalDistance * userWeight * 1.036
+            caloriesBurned = kcal.toInt()
         }
 
         pathPoints.add(newPoint)
@@ -149,31 +147,31 @@ class TrackerFragment : Fragment() {
         runPolyline?.setPoints(pathPoints)
         binding.mapView.controller.animateTo(newPoint)
         binding.mapView.invalidate()
-        binding.tvDistance.text = "%.2f KM".format(totalDistance)
+
+        // Update UI
+        binding.tvDistance.text = "%.2f".format(totalDistance)
+        binding.tvCalories.text = "$caloriesBurned" // Tampilkan Kalori
     }
 
+    // ... (checkPermissionAndStart, requestPermissionLauncher SAMA) ...
     private fun checkPermissionAndStart() {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             return
         }
         startTracking()
     }
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
         if (isGranted) startTracking() else Toast.makeText(context, "Izin Ditolak!", Toast.LENGTH_SHORT).show()
     }
+
 
     private fun startTracking() {
         isTracking = true
         pathPoints.clear()
         totalDistance = 0.0
+        caloriesBurned = 0 // Reset Kalori
 
         if (runPolyline != null) {
             binding.mapView.overlays.remove(runPolyline)
@@ -184,10 +182,8 @@ class TrackerFragment : Fragment() {
         binding.btnStartRun.text = "STOP TRACKING"
         binding.btnStartRun.backgroundTintList = requireContext().getColorStateList(android.R.color.holo_red_dark)
 
-        // --- MULAI TIMER ---
         startTime = System.currentTimeMillis()
         timerHandler.postDelayed(timerRunnable, 0)
-        // -------------------
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
             .setMinUpdateDistanceMeters(5f)
@@ -196,7 +192,6 @@ class TrackerFragment : Fragment() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
             Toast.makeText(context, "Mulai Lari!", Toast.LENGTH_SHORT).show()
-
             val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(requireContext()), binding.mapView)
             myLocationOverlay.enableMyLocation()
             binding.mapView.overlays.add(myLocationOverlay)
@@ -209,72 +204,53 @@ class TrackerFragment : Fragment() {
         binding.btnStartRun.backgroundTintList = requireContext().getColorStateList(R.color.gym_accent)
         fusedLocationClient.removeLocationUpdates(locationCallback)
 
-        // --- STOP TIMER ---
         timerHandler.removeCallbacks(timerRunnable)
         val finalDuration = System.currentTimeMillis() - startTime
-        // ------------------
 
         if (totalDistance > 0.05) {
-            saveRunToHistory(totalDistance, finalDuration) // Kirim Durasi juga
-            Toast.makeText(context, "Lari disimpan ke Riwayat!", Toast.LENGTH_SHORT).show()
+            saveRunToHistory(totalDistance, finalDuration, caloriesBurned)
+            Toast.makeText(context, "Disimpan: $caloriesBurned Kcal terbakar! 🔥", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(context, "Jarak terlalu pendek, tidak disimpan.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Jarak terlalu pendek.", Toast.LENGTH_SHORT).show()
         }
 
-        binding.tvDistance.text = "0.00 KM"
-        binding.tvTimer.text = "00:00:00" // Reset teks timer
+        binding.tvDistance.text = "0.00"
+        binding.tvCalories.text = "0"
+        binding.tvTimer.text = "00:00:00"
     }
 
-    private fun saveRunToHistory(distance: Double, duration: Long) {
+    private fun saveRunToHistory(distance: Double, duration: Long, calories: Int) {
         lifecycleScope.launch {
             val history = RunHistory(
                 dateInMillis = System.currentTimeMillis(),
                 distanceKm = distance,
-                durationInMillis = duration // Simpan durasi
+                durationInMillis = duration,
+                caloriesBurned = calories // Simpan Kalori
             )
             database.runHistoryDao().insertRun(history)
         }
     }
 
+    // ... (showHistoryDialog SAMA, tapi Adapter-nya perlu update dikit nanti) ...
     private fun showHistoryDialog() {
         val recyclerView = RecyclerView(requireContext())
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.setPadding(32, 32, 32, 32)
-
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Riwayat Lari")
-            .setView(recyclerView)
-            .setPositiveButton("Tutup", null)
-            .create()
-
+        val dialog = AlertDialog.Builder(requireContext()).setTitle("Riwayat Lari").setView(recyclerView).setPositiveButton("Tutup", null).create()
         lifecycleScope.launch {
             val historyList = database.runHistoryDao().getAllRuns()
-
-            if (historyList.isEmpty()) {
-                Toast.makeText(requireContext(), "Belum ada riwayat", Toast.LENGTH_SHORT).show()
-            }
-
             val adapter = RunHistoryAdapter(historyList) { itemToDelete ->
                 lifecycleScope.launch {
                     database.runHistoryDao().deleteRun(itemToDelete)
                     dialog.dismiss()
                     showHistoryDialog()
-                    Toast.makeText(requireContext(), "Data dihapus", Toast.LENGTH_SHORT).show()
                 }
             }
             recyclerView.adapter = adapter
         }
-
         dialog.show()
     }
 
-    override fun onResume() {
-        super.onResume()
-        binding.mapView.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        binding.mapView.onPause()
-    }
+    override fun onResume() { super.onResume(); binding.mapView.onResume() }
+    override fun onPause() { super.onPause(); binding.mapView.onPause() }
 }

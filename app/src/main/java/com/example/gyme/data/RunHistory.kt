@@ -9,5 +9,6 @@ data class RunHistory(
     val id: Int = 0,
     val dateInMillis: Long,
     val distanceKm: Double,
-    val durationInMillis: Long
+    val durationInMillis: Long,
+    val caloriesBurned: Int
 )

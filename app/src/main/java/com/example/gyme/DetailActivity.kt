@@ -1,15 +1,22 @@
 package com.example.gyme
 
+import android.app.AlertDialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
-import com.example.gyme.databinding.ActivityDetailBinding
 import com.example.gyme.data.AppDatabase
+import com.example.gyme.databinding.ActivityDetailBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,7 +36,7 @@ class DetailActivity : AppCompatActivity() {
 
         database = AppDatabase.getDatabase(this)
 
-        // 1. Ambil Data
+        // 1. Ambil Data dari Intent
         val id = intent.getIntExtra("EXTRA_ID", 0)
         val weight = intent.getDoubleExtra("EXTRA_WEIGHT", 0.0)
         val name = intent.getStringExtra("EXTRA_NAME") ?: "Latihan"
@@ -39,15 +46,18 @@ class DetailActivity : AppCompatActivity() {
         val instructions = intent.getStringExtra("EXTRA_INSTRUCT") ?: "Tidak ada instruksi."
         val imageUrl = intent.getStringExtra("EXTRA_IMAGE") ?: ""
 
-        // 2. Tampilkan UI
+        // 2. Tampilkan UI (Update sesuai Layout Aesthetic Baru)
         binding.tvDetailName.text = name
-        binding.tvDetailMuscle.text = "Target: $muscle"
-        binding.tvDetailSets.text = sets.replace(" Sets", "")
-        binding.tvDetailReps.text = reps.replace(" Reps", "")
+        binding.tvDetailMuscle.text = muscle
+
+        // Gabungkan Sets & Reps di satu TextView (sesuai layout baru)
+        binding.tvDetailSetsReps.text = "$sets • $reps"
+
         binding.tvInstructions.text = instructions
 
+        // Cek jika ada beban tersimpan
         if (weight > 0) {
-            binding.etWeightRecord.setText(weight.toString())
+            binding.etWeight.setText(weight.toString()) // ID berubah jadi etWeight
         }
 
         Glide.with(this)
@@ -56,18 +66,16 @@ class DetailActivity : AppCompatActivity() {
             .placeholder(android.R.drawable.ic_menu_gallery)
             .into(binding.imgDetail)
 
+        // Tombol Back
         binding.btnBack.setOnClickListener { finish() }
 
         // Logika Simpan Beban
         binding.btnSaveWeight.setOnClickListener {
-            val inputWeight = binding.etWeightRecord.text.toString().toDoubleOrNull()
+            val inputWeight = binding.etWeight.text.toString().toDoubleOrNull()
 
             if (id != 0 && inputWeight != null) {
-                // Simpan ke Database di Background Thread
                 CoroutineScope(Dispatchers.IO).launch {
                     database.workoutDao().updateWeight(id, inputWeight)
-
-                    // Balik ke UI Thread untuk Toast
                     runOnUiThread {
                         Toast.makeText(this@DetailActivity, "Beban $inputWeight kg Disimpan!", Toast.LENGTH_SHORT).show()
                     }
@@ -76,7 +84,6 @@ class DetailActivity : AppCompatActivity() {
                 Toast.makeText(this, "Masukkan angka yang valid", Toast.LENGTH_SHORT).show()
             }
         }
-
 
         // 3. Logika Timer
         binding.btnTimer.setOnClickListener {
@@ -101,10 +108,17 @@ class DetailActivity : AppCompatActivity() {
                 binding.btnTimer.backgroundTintList = getColorStateList(R.color.gym_accent)
                 isTimerRunning = false
 
-                // --- FITUR BARU: MAINKAN SUARA ---
                 playNotificationSound()
 
-                Toast.makeText(this@DetailActivity, "Waktu Habis! Gas Latihan!", Toast.LENGTH_SHORT).show()
+                // --- GANTI TOAST DENGAN DIALOG KEREN ---
+                showCustomAlert(
+                    title = "Waktu Habis! ⏰",
+                    message = "Istirahat selesai. Tarik napas, fokus, dan angkat bebanmu sekarang!",
+                    positiveText = "GAS LATIHAN!",
+                    onPositiveClick = {
+                        // User klik tombol Gas, timer berhenti (dialog otomatis tutup)
+                    }
+                )
             }
         }.start()
 
@@ -117,17 +131,63 @@ class DetailActivity : AppCompatActivity() {
         timer?.cancel()
         isTimerRunning = false
         binding.tvTimer.text = "01:00"
-        binding.btnTimer.text = "Mulai Istirahat"
+        binding.btnTimer.text = "Mulai Istirahat (60s)"
         binding.btnTimer.backgroundTintList = getColorStateList(R.color.gym_accent)
     }
 
-    // Fungsi untuk memutar suara notifikasi default HP
+    // --- FUNGSI CUSTOM DIALOG YANG KEREN ---
+    private fun showCustomAlert(
+        title: String,
+        message: String,
+        positiveText: String = "Oke",
+        negativeText: String? = null, // Kalau null, tombol batal disembunyikan
+        onPositiveClick: () -> Unit
+    ) {
+        // Inflate Layout Custom
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom_alert, null)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
+        val tvMessage = dialogView.findViewById<TextView>(R.id.tvDialogMessage)
+        val btnPositive = dialogView.findViewById<Button>(R.id.btnDialogPositive)
+        val btnNegative = dialogView.findViewById<Button>(R.id.btnDialogNegative)
+        val imgIcon = dialogView.findViewById<ImageView>(R.id.imgDialogIcon)
+
+        // Set Data
+        tvTitle.text = title
+        tvMessage.text = message
+        btnPositive.text = positiveText
+
+        // Atur Tombol Negative (Sembunyikan kalau tidak butuh)
+        if (negativeText == null) {
+            btnNegative.visibility = android.view.View.GONE
+        } else {
+            btnNegative.text = negativeText
+        }
+
+        // Bikin Dialog
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        val dialog = builder.create()
+
+        // PENTING: Bikin background dialog jadi transparan biar rounded corner-nya kelihatan
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        // Klik Listener
+        btnPositive.setOnClickListener {
+            onPositiveClick()
+            dialog.dismiss()
+        }
+
+        btnNegative.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     private fun playNotificationSound() {
         try {
-            // Ambil URI suara notifikasi default
             val notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-
-            // Siapkan MediaPlayer
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(applicationContext, notificationUri)
                 setAudioAttributes(
@@ -136,10 +196,8 @@ class DetailActivity : AppCompatActivity() {
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build()
                 )
-                prepare() // Siapkan buffer
-                start()   // Mainkan
-
-                // Release memory setelah selesai main
+                prepare()
+                start()
                 setOnCompletionListener {
                     it.release()
                     mediaPlayer = null
@@ -153,6 +211,6 @@ class DetailActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         timer?.cancel()
-        mediaPlayer?.release() // Bersihkan player saat keluar activity agar tidak bocor memory
+        mediaPlayer?.release()
     }
 }
