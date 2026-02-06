@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@color/gym_dark_card">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tambah Latihan Baru"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/gym_accent"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/etExerciseName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nama Latihan "
+        android:textColor="@color/white"
+        android:textColorHint="#888"
+        android:backgroundTint="@color/gym_accent"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etMuscleGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Target Otot "
+        android:textColor="@color/white"
+        android:textColorHint="#888"
+        android:backgroundTint="@color/gym_accent"
+        android:layout_marginBottom="12dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etSets"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Sets "
+            android:inputType="number"
+            android:textColor="@color/white"
+            android:textColorHint="#888"
+            android:backgroundTint="@color/gym_accent"
+            android:layout_marginEnd="8dp"/>
+
+        <EditText
+            android:id="@+id/etReps"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Reps "
+            android:inputType="number"
+            android:textColor="@color/white"
+            android:textColorHint="#888"
+            android:backgroundTint="@color/gym_accent"/>
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etImageUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Link Gambar/GIF (Opsional)"
+        android:textColor="@color/white"
+        android:textColorHint="#888"
+        android:backgroundTint="@color/gym_accent"
+        android:inputType="textUri"
+        android:layout_marginTop="12dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="*Tips: Copy link GIF dari Google/Giphy"
+        android:textColor="#666"
+        android:textSize="10sp"/>
+
+    <Button
+        android:id="@+id/btnAdd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TAMBAHKAN"
+        android:backgroundTint="@color/gym_accent"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"/>
+
+</LinearLayout>
