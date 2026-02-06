@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="#2A2A2A"
+    app:cardCornerRadius="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_mapmode"
+            app:tint="@color/gym_accent" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Minggu, 12 Jan 2026"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="14sp"/>
+
+            <TextView
+                android:id="@+id/tvRunDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="- 5.24 km"
+                android:textColor="#BBB"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/tvRunDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="- ⏱ 30m 12s"
+                android:textColor="#BBB"
+                android:textSize="12sp"/>
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnDeleteRun"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="#FF4444"/>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
