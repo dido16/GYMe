@@ -14,7 +14,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -63,7 +62,6 @@ class GymFragment : Fragment() {
                 }
             },
             onDeleteRequest = { workout ->
-                // Panggil Custom Dialog Keren
                 showCustomAlert(
                     title = "Hapus Latihan?",
                     message = "Kamu yakin ingin menghapus '${workout.exerciseName}'? Data ini tidak bisa dikembalikan.",
@@ -94,8 +92,6 @@ class GymFragment : Fragment() {
 
         checkNotificationPermission()
         setupDailyReminder()
-
-        // Update sapaan selamat pagi/siang/malam
         updateGreeting()
     }
 
@@ -106,7 +102,6 @@ class GymFragment : Fragment() {
         updateGreeting()
     }
 
-    // --- LOGIKA SAPAAN (GREETING) ---
     private fun updateGreeting() {
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -119,7 +114,6 @@ class GymFragment : Fragment() {
         binding.tvGreeting.text = greeting
     }
 
-    // --- CUSTOM DIALOG KEREN (Sama seperti DetailActivity) ---
     private fun showCustomAlert(
         title: String,
         message: String,
@@ -128,12 +122,10 @@ class GymFragment : Fragment() {
         onPositiveClick: () -> Unit
     ) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_alert, null)
-
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
         val tvMessage = dialogView.findViewById<TextView>(R.id.tvDialogMessage)
         val btnPositive = dialogView.findViewById<Button>(R.id.btnDialogPositive)
         val btnNegative = dialogView.findViewById<Button>(R.id.btnDialogNegative)
-        // val imgIcon = dialogView.findViewById<ImageView>(R.id.imgDialogIcon) // Bisa ganti icon kalau mau
 
         tvTitle.text = title
         tvMessage.text = message
@@ -148,48 +140,33 @@ class GymFragment : Fragment() {
         val builder = AlertDialog.Builder(requireContext())
         builder.setView(dialogView)
         val dialog = builder.create()
-
-        // Bikin background transparan agar rounded corner terlihat
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         btnPositive.setOnClickListener {
             onPositiveClick()
             dialog.dismiss()
         }
-
-        btnNegative.setOnClickListener {
-            dialog.dismiss()
-        }
-
+        btnNegative.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
     private fun showAddWorkoutDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_workout, null)
-
         val etName = dialogView.findViewById<EditText>(R.id.etExerciseName)
         val etMuscle = dialogView.findViewById<EditText>(R.id.etMuscleGroup)
         val etSets = dialogView.findViewById<EditText>(R.id.etSets)
         val etReps = dialogView.findViewById<EditText>(R.id.etReps)
         val etImage = dialogView.findViewById<EditText>(R.id.etImageUrl)
-
-        // Button sekarang diambil dari layout
         val btnAdd = dialogView.findViewById<Button>(R.id.btnAdd)
         val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .create()
-
-        // Background transparan biar rounded corner CardView kelihatan
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        // Tombol Batal
-        btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
 
-        // Tombol Tambah
         btnAdd.setOnClickListener {
             val name = etName.text.toString()
             val muscle = etMuscle.text.toString()
@@ -204,7 +181,6 @@ class GymFragment : Fragment() {
                 Toast.makeText(requireContext(), "Nama & Target Otot wajib diisi!", Toast.LENGTH_SHORT).show()
             }
         }
-
         dialog.show()
     }
 
@@ -251,14 +227,8 @@ class GymFragment : Fragment() {
 
         val heightInMeter = height / 100
         val bmi = weight / (heightInMeter * heightInMeter)
-
-        val bmr = if (isMale) {
-            (10 * weight) + (6.25 * height) - (5 * age) + 5
-        } else {
-            (10 * weight) + (6.25 * height) - (5 * age) - 161
-        }
+        val bmr = if (isMale) (10 * weight) + (6.25 * height) - (5 * age) + 5 else (10 * weight) + (6.25 * height) - (5 * age) - 161
         val tdee = (bmr * 1.55) + 300
-
         val bmiStatus = if(bmi < 18.5) "Underweight" else if(bmi < 24.9) "Normal" else "Overweight"
 
         binding.tvCalorieTarget.text = "${tdee.toInt()} KCAL"
@@ -274,7 +244,6 @@ class GymFragment : Fragment() {
 
             val calendar = Calendar.getInstance()
             val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-
             val dayName = when (dayOfWeek) {
                 Calendar.MONDAY -> "Monday"
                 Calendar.TUESDAY -> "Tuesday"
@@ -285,7 +254,6 @@ class GymFragment : Fragment() {
                 else -> "Sunday"
             }
 
-            // Update Judul agar lebih tegas (Uppercase)
             val displayDay = when (dayOfWeek) {
                 Calendar.MONDAY -> "MONDAY"
                 Calendar.TUESDAY -> "TUESDAY"
@@ -301,11 +269,11 @@ class GymFragment : Fragment() {
 
             if (workouts.isNotEmpty()) {
                 adapter.updateData(workouts)
-                binding.layoutEmptyState.visibility = View.GONE // Sembunyikan Empty State
+                binding.layoutEmptyState.visibility = View.GONE
                 binding.rvWorkout.visibility = View.VISIBLE
             } else {
                 adapter.updateData(emptyList())
-                binding.layoutEmptyState.visibility = View.VISIBLE // Tampilkan Empty State
+                binding.layoutEmptyState.visibility = View.VISIBLE
                 binding.rvWorkout.visibility = View.GONE
             }
         }
@@ -313,8 +281,7 @@ class GymFragment : Fragment() {
 
     private fun checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) !=
-                PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
             }
         }
@@ -324,218 +291,69 @@ class GymFragment : Fragment() {
         val workManager = WorkManager.getInstance(requireContext())
         val currentDate = Calendar.getInstance()
         val dueDate = Calendar.getInstance()
-
         dueDate.set(Calendar.HOUR_OF_DAY, 16)
         dueDate.set(Calendar.MINUTE, 0)
         dueDate.set(Calendar.SECOND, 0)
-
-        if (dueDate.before(currentDate)) {
-            dueDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-
+        if (dueDate.before(currentDate)) { dueDate.add(Calendar.HOUR_OF_DAY, 24) }
         val timeDiff = dueDate.timeInMillis - currentDate.timeInMillis
-
         val dailyWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
             .addTag("daily_gym_reminder")
             .build()
-
-        workManager.enqueueUniquePeriodicWork(
-            "daily_reminder",
-            ExistingPeriodicWorkPolicy.KEEP,
-            dailyWorkRequest
-        )
+        workManager.enqueueUniquePeriodicWork("daily_reminder", ExistingPeriodicWorkPolicy.KEEP, dailyWorkRequest)
     }
 
     private suspend fun populateDatabase() {
-        val dummyData = listOf(
-            // --- SENIN (PUSH) ---
-            Workout(
-                day = "Monday",
-                exerciseName = "Bench Press",
-                muscleGroup = "Chest",
-                sets = "4 Sets",
-                reps = "8-12 Reps",
-                instructions = "Turunkan bar perlahan ke tengah dada, lalu dorong eksplosif ke atas. Jaga punggung tetap rata di bangku.",
-                imageUrl = "https://media.giphy.com/media/l41Yy4J96X8ehz8xG/giphy.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Monday",
-                exerciseName = "Overhead Press",
-                muscleGroup = "Shoulder",
-                sets = "3 Sets",
-                reps = "10 Reps",
-                instructions = "Berdiri tegak, dorong barbel dari depan bahu lurus ke atas kepala. Jangan melengkungkan punggung.",
-                imageUrl = "https://i.makeagif.com/media/11-12-2015/F2x3_m.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Monday",
-                exerciseName = "Incline Dumbbell Press",
-                muscleGroup = "Chest",
-                sets = "3 Sets",
-                reps = "10-12 Reps",
-                instructions = "Duduk di bangku miring (30-45 derajat), dorong dumbbell ke atas. Fokus pada dada bagian atas.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Monday",
-                exerciseName = "Tricep Pushdown",
-                muscleGroup = "Tricep",
-                sets = "3 Sets",
-                reps = "15 Reps",
-                instructions = "Gunakan kabel, kunci siku di samping pinggang. Tekan ke bawah hingga lengan lurus.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Pushdown.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
+        val sharedPref = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val isMale = sharedPref.getBoolean("is_male", true)
+        val workouts = if (isMale) getMaleWorkouts() else getFemaleWorkouts()
+        database.workoutDao().insertAll(workouts)
+    }
 
-            // --- SELASA (PULL) ---
-            Workout(
-                day = "Tuesday",
-                exerciseName = "Lat Pulldown",
-                muscleGroup = "Back",
-                sets = "4 Sets",
-                reps = "12 Reps",
-                instructions = "Duduk tegak, tarik bar ke arah dada atas. Bayangkan siku ditarik ke belakang.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Tuesday",
-                exerciseName = "Barbell Row",
-                muscleGroup = "Back",
-                sets = "3 Sets",
-                reps = "10 Reps",
-                instructions = "Bungkukkan badan 45 derajat, tarik barbel ke arah perut. Kencangkan otot punggung.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bent-Over-Row.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Tuesday",
-                exerciseName = "Face Pull",
-                muscleGroup = "Rear Delt",
-                sets = "3 Sets",
-                reps = "15 Reps",
-                instructions = "Tarik tali ke arah wajah (hidung/dahi) dengan posisi siku tinggi.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Tuesday",
-                exerciseName = "Bicep Curl",
-                muscleGroup = "Bicep",
-                sets = "3 Sets",
-                reps = "12 Reps",
-                instructions = "Angkat dumbbell dengan menekuk siku. Jangan ayunkan badan.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
+    private fun getMaleWorkouts(): List<Workout> {
+        return listOf(
+            Workout(day = "Monday", exerciseName = "Bench Press", muscleGroup = "Chest", sets = "4 Sets", reps = "8-12 Reps", instructions = "Turunkan bar perlahan ke dada, dorong eksplosif.", imageUrl = "https://media.giphy.com/media/l41Yy4J96X8ehz8xG/giphy.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Monday", exerciseName = "Incline DB Press", muscleGroup = "Upper Chest", sets = "3 Sets", reps = "10-12 Reps", instructions = "Bangku miring 30 derajat.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Monday", exerciseName = "Tricep Pushdown", muscleGroup = "Tricep", sets = "3 Sets", reps = "15 Reps", instructions = "Kunci siku di samping tubuh.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Pushdown.gif", isCompleted = false, weight = 0.0),
 
-            // --- RABU (LEGS) ---
-            Workout(
-                day = "Wednesday",
-                exerciseName = "Barbell Squat",
-                muscleGroup = "Legs",
-                sets = "4 Sets",
-                reps = "8-10 Reps",
-                instructions = "Letakkan bar di punggung, jongkok hingga paha sejajar lantai. Dorong dengan tumit.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Squat.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Wednesday",
-                exerciseName = "Leg Press",
-                muscleGroup = "Legs",
-                sets = "3 Sets",
-                reps = "12 Reps",
-                instructions = "Dorong beban dengan kaki, tapi jangan kunci lutut (jangan lurus total) saat di atas.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Wednesday",
-                exerciseName = "Lunges",
-                muscleGroup = "Legs",
-                sets = "3 Sets",
-                reps = "12 Reps",
-                instructions = "Langkah lebar ke depan, turunkan pinggul hingga kedua lutut membentuk 90 derajat.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Wednesday",
-                exerciseName = "Calf Raise",
-                muscleGroup = "Calf",
-                sets = "4 Sets",
-                reps = "20 Reps",
-                instructions = "Jinjit setinggi mungkin, tahan sebentar di atas, lalu turun perlahan.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Calf-Raise.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
+            Workout(day = "Tuesday", exerciseName = "Lat Pulldown", muscleGroup = "Back", sets = "4 Sets", reps = "12 Reps", instructions = "Tarik ke dada atas.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Tuesday", exerciseName = "Barbell Row", muscleGroup = "Back", sets = "3 Sets", reps = "10 Reps", instructions = "Bungkuk 45 derajat, tarik ke perut.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bent-Over-Row.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Tuesday", exerciseName = "Face Pull", muscleGroup = "Rear Delt", sets = "3 Sets", reps = "15 Reps", instructions = "Tarik tali ke arah wajah.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Tuesday", exerciseName = "Bicep Curl", muscleGroup = "Bicep", sets = "3 Sets", reps = "12 Reps", instructions = "Jangan ayun badan.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif", isCompleted = false, weight = 0.0),
 
-            // --- KAMIS (PUSH Variasi) ---
-            Workout(
-                day = "Thursday",
-                exerciseName = "Dumbbell Shoulder Press",
-                muscleGroup = "Shoulder",
-                sets = "3 Sets",
-                reps = "12 Reps",
-                instructions = "Duduk tegak, dorong dumbbell ke atas kepala sampai tangan hampir lurus.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Thursday",
-                exerciseName = "Lateral Raise",
-                muscleGroup = "Shoulder",
-                sets = "4 Sets",
-                reps = "15 Reps",
-                instructions = "Angkat tangan ke samping setinggi bahu seperti mengepakkan sayap.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
+            Workout(day = "Wednesday", exerciseName = "Barbell Squat", muscleGroup = "Legs", sets = "4 Sets", reps = "8-10 Reps", instructions = "Jongkok hingga paha sejajar lantai.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Squat.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Wednesday", exerciseName = "Leg Press", muscleGroup = "Legs", sets = "3 Sets", reps = "12 Reps", instructions = "Dorong beban dengan kaki.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Wednesday", exerciseName = "Lunges", muscleGroup = "Legs", sets = "3 Sets", reps = "12 Reps", instructions = "Langkah lebar ke depan.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Wednesday", exerciseName = "Calf Raise", muscleGroup = "Calf", sets = "4 Sets", reps = "20 Reps", instructions = "Jinjit setinggi mungkin.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Calf-Raise.gif", isCompleted = false, weight = 0.0),
 
-            // --- JUMAT (PULL Variasi) ---
-            Workout(
-                day = "Friday",
-                exerciseName = "Deadlift",
-                muscleGroup = "Back & Legs",
-                sets = "3 Sets",
-                reps = "5 Reps",
-                instructions = "Angkat beban dari lantai dengan punggung lurus dan dada membusung.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Deadlift.gif",
-                isCompleted = false,
-                weight = 0.0
-            ),
-            Workout(
-                day = "Friday",
-                exerciseName = "Hammer Curl",
-                muscleGroup = "Bicep",
-                sets = "3 Sets",
-                reps = "12 Reps",
-                instructions = "Pegang dumbbell netral (seperti memegang palu), angkat ke arah bahu.",
-                imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif",
-                isCompleted = false,
-                weight = 0.0
-            )
+            Workout(day = "Thursday", exerciseName = "Dumbbell Shoulder Press", muscleGroup = "Shoulder", sets = "3 Sets", reps = "12 Reps", instructions = "Dorong dumbbell ke atas kepala.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Thursday", exerciseName = "Lateral Raise", muscleGroup = "Shoulder", sets = "4 Sets", reps = "15 Reps", instructions = "Angkat tangan ke samping.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif", isCompleted = false, weight = 0.0),
+
+            Workout(day = "Friday", exerciseName = "Deadlift", muscleGroup = "Back & Legs", sets = "3 Sets", reps = "5 Reps", instructions = "Angkat beban dari lantai.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Deadlift.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Friday", exerciseName = "Hammer Curl", muscleGroup = "Bicep", sets = "3 Sets", reps = "12 Reps", instructions = "Genggaman netral seperti palu.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif", isCompleted = false, weight = 0.0)
         )
-        database.workoutDao().insertAll(dummyData)
+    }
+
+    private fun getFemaleWorkouts(): List<Workout> {
+        return listOf(
+            Workout(day = "Monday", exerciseName = "Hip Thrust", muscleGroup = "Glutes", sets = "4 Sets", reps = "12-15 Reps", instructions = "Dorong pinggul ke atas, tahan di puncak.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Hip-Thrust.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Monday", exerciseName = "Goblet Squat", muscleGroup = "Legs/Glutes", sets = "3 Sets", reps = "12 Reps", instructions = "Pegang beban di dada, jongkok dalam.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Goblet-Squat.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Monday", exerciseName = "Glute Kickback", muscleGroup = "Glutes", sets = "3 Sets", reps = "15 Reps", instructions = "Tendang kaki ke belakang.", imageUrl = "https://media.giphy.com/media/l41Yy4J96X8ehz8xG/giphy.gif", isCompleted = false, weight = 0.0),
+
+            Workout(day = "Tuesday", exerciseName = "Dumbbell Row", muscleGroup = "Back", sets = "3 Sets", reps = "12 Reps", instructions = "Kencangkan punggung.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/One-Arm-Dumbbell-Row.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Tuesday", exerciseName = "Shoulder Press", muscleGroup = "Shoulder", sets = "3 Sets", reps = "15 Reps", instructions = "Beban ringan, repetisi tinggi.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Tuesday", exerciseName = "Plank", muscleGroup = "Abs", sets = "3 Sets", reps = "45 Detik", instructions = "Tahan posisi lurus.", imageUrl = "https://media.giphy.com/media/3oKIPsw8MN6tX7iXpS/giphy.gif", isCompleted = false, weight = 0.0),
+
+            Workout(day = "Wednesday", exerciseName = "Jumping Jacks", muscleGroup = "Cardio", sets = "4 Sets", reps = "1 Menit", instructions = "Lompat buka tutup.", imageUrl = "https://media.giphy.com/media/127sEOp8t0XWJa/giphy.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Wednesday", exerciseName = "Mountain Climbers", muscleGroup = "Abs/Cardio", sets = "3 Sets", reps = "45 Detik", instructions = "Lari di tempat posisi pushup.", imageUrl = "https://media.giphy.com/media/l2QDNWCp9D9BZF04w/giphy.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Wednesday", exerciseName = "Lunges", muscleGroup = "Legs", sets = "3 Sets", reps = "20 Reps", instructions = "Langkah ke depan bergantian.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif", isCompleted = false, weight = 0.0),
+
+            Workout(day = "Thursday", exerciseName = "RDL", muscleGroup = "Hamstrings", sets = "3 Sets", reps = "12 Reps", instructions = "Turunkan beban menyusuri kaki.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Romanian-Deadlift.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Thursday", exerciseName = "Sumo Squat", muscleGroup = "Glutes/Inner Thigh", sets = "3 Sets", reps = "12 Reps", instructions = "Kaki lebar, fokus paha dalam.", imageUrl = "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Sumo-Squat.gif", isCompleted = false, weight = 0.0),
+
+            Workout(day = "Friday", exerciseName = "Burpees", muscleGroup = "Full Body", sets = "3 Sets", reps = "10 Reps", instructions = "Turun, pushup, lompat.", imageUrl = "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif", isCompleted = false, weight = 0.0),
+            Workout(day = "Friday", exerciseName = "Russian Twist", muscleGroup = "Abs", sets = "3 Sets", reps = "20 Reps", instructions = "Putar badan kanan kiri.", imageUrl = "https://media.giphy.com/media/3o7TKMt1VVNkHVyPaE/giphy.gif", isCompleted = false, weight = 0.0)
+        )
     }
 
     override fun onDestroyView() {

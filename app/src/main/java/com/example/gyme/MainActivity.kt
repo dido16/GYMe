@@ -2,8 +2,7 @@ package com.example.gyme
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
+import androidx.fragment.app.Fragment
 import com.example.gyme.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -15,12 +14,40 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Setup Bottom Navigation
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
+        // 1. Load Fragment Default (Gym) saat aplikasi dibuka
+        if (savedInstanceState == null) {
+            loadFragment(GymFragment())
+        }
 
-        binding.bottomNav.setupWithNavController(navController)
+        // 2. Setup Logika Pindah Menu (Gym - Meals - Tracker)
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_gym -> {
+                    loadFragment(GymFragment())
+                    true
+                }
+                R.id.nav_meals -> {
+                    loadFragment(MealsFragment())
+                    true
+                }
+                R.id.nav_tracker -> {
+                    loadFragment(TrackerFragment())
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Matikan efek re-selection (biar gak reload kalau diklik lagi)
+        binding.bottomNav.setOnItemReselectedListener {
+            // Do nothing
+        }
     }
 
-
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+            .replace(R.id.fragment_container, fragment)
+            .commit()
+    }
 }

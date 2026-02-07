@@ -10,5 +10,7 @@ data class RunHistory(
     val dateInMillis: Long,
     val distanceKm: Double,
     val durationInMillis: Long,
-    val caloriesBurned: Int
+    val caloriesBurned: Int,
+    val avgPace: String,
+    val pathData: String
 )

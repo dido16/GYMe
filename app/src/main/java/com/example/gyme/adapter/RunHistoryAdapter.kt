@@ -11,7 +11,9 @@ import java.util.Locale
 
 class RunHistoryAdapter(
     private var list: List<RunHistory>,
+    private val onClick: (RunHistory) -> Unit,
     private val onDeleteClick: (RunHistory) -> Unit
+
 ) : RecyclerView.Adapter<RunHistoryAdapter.HistoryViewHolder>() {
 
     class HistoryViewHolder(val binding: ItemRunHistoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -44,9 +46,15 @@ class RunHistoryAdapter(
 
         holder.binding.tvRunCalories.text = "🔥 ${item.caloriesBurned}"
 
+        holder.itemView.setOnClickListener {
+            onClick(item)
+        }
+
         holder.binding.btnDeleteRun.setOnClickListener {
             onDeleteClick(item)
         }
+
+
     }
 
     override fun getItemCount() = list.size
