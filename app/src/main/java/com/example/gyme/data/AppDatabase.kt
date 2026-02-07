@@ -6,13 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 // 1. Tambahkan RunHistory di entities
-@Database(entities = [Workout::class, RunHistory::class], version = 2, exportSchema = false)
+@Database(entities = [Workout::class, RunHistory::class, WeightHistory::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun workoutDao(): WorkoutDao
-
-    // 2. Tambahkan DAO baru
     abstract fun runHistoryDao(): RunHistoryDao
+    abstract fun weightDao(): WeightDao
+
 
     companion object {
         @Volatile
@@ -25,7 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "workout_database"
                 )
-                    .fallbackToDestructiveMigration() // Biar kalau versi naik, DB lama direset (aman buat development)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

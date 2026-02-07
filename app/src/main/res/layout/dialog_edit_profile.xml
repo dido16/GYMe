@@ -16,129 +16,64 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Workout"
+            android:text="Update Body Stats"
             android:textColor="@color/white"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:fontFamily="sans-serif-black"
             android:layout_marginBottom="24dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="EXERCISE NAME"
+            android:text="WEIGHT (KG)"
             android:textColor="#666"
             android:textSize="10sp"
             android:layout_marginBottom="8dp"/>
-
         <EditText
-            android:id="@+id/etExerciseName"
+            android:id="@+id/etEditWeight"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="@drawable/edittext_bg_dark"
-            android:hint="e.g. Push Up"
-            android:textColorHint="#444"
+            android:hint="60"
+            android:inputType="numberDecimal"
             android:textColor="@color/white"
             android:paddingHorizontal="16dp"
-            android:textSize="14sp"
             android:layout_marginBottom="16dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TARGET MUSCLE"
+            android:text="HEIGHT (CM)"
             android:textColor="#666"
             android:textSize="10sp"
             android:layout_marginBottom="8dp"/>
-
         <EditText
-            android:id="@+id/etMuscleGroup"
+            android:id="@+id/etEditHeight"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="@drawable/edittext_bg_dark"
-            android:hint="e.g. Chest"
-            android:textColorHint="#444"
+            android:hint="170"
+            android:inputType="number"
             android:textColor="@color/white"
             android:paddingHorizontal="16dp"
-            android:textSize="14sp"
             android:layout_marginBottom="16dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginEnd="8dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="SETS"
-                    android:textColor="#666"
-                    android:textSize="10sp"
-                    android:layout_marginBottom="8dp"/>
-                <EditText
-                    android:id="@+id/etSets"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:background="@drawable/edittext_bg_dark"
-                    android:hint="4"
-                    android:inputType="number"
-                    android:gravity="center"
-                    android:textColorHint="#444"
-                    android:textColor="@color/white"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="8dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="REPS"
-                    android:textColor="#666"
-                    android:textSize="10sp"
-                    android:layout_marginBottom="8dp"/>
-                <EditText
-                    android:id="@+id/etReps"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:background="@drawable/edittext_bg_dark"
-                    android:hint="12"
-                    android:inputType="text"
-                    android:gravity="center"
-                    android:textColorHint="#444"
-                    android:textColor="@color/white"/>
-            </LinearLayout>
-        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="IMAGE URL / GIF (OPTIONAL)"
+            android:text="AGE (YEARS)"
             android:textColor="#666"
             android:textSize="10sp"
             android:layout_marginBottom="8dp"/>
-
         <EditText
-            android:id="@+id/etImageUrl"
+            android:id="@+id/etEditAge"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:background="@drawable/edittext_bg_dark"
-            android:hint="https://..."
-            android:inputType="textUri"
-            android:textColorHint="#444"
+            android:hint="20"
+            android:inputType="number"
             android:textColor="@color/white"
             android:paddingHorizontal="16dp"
-            android:textSize="14sp"
             android:layout_marginBottom="24dp"/>
 
         <LinearLayout
@@ -158,11 +93,11 @@
                 app:cornerRadius="12dp"/>
 
             <Button
-                android:id="@+id/btnAdd"
+                android:id="@+id/btnSaveProfile"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_weight="1"
-                android:text="TAMBAH"
+                android:text="Simpan"
                 android:textColor="#121212"
                 android:textStyle="bold"
                 android:backgroundTint="@color/gym_accent"

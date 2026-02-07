@@ -164,7 +164,6 @@ class GymFragment : Fragment() {
         dialog.show()
     }
 
-    // --- DIALOG TAMBAH LATIHAN (Standard Dialog tapi dikasih background transparan) ---
     private fun showAddWorkoutDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_workout, null)
 
@@ -173,14 +172,24 @@ class GymFragment : Fragment() {
         val etSets = dialogView.findViewById<EditText>(R.id.etSets)
         val etReps = dialogView.findViewById<EditText>(R.id.etReps)
         val etImage = dialogView.findViewById<EditText>(R.id.etImageUrl)
+
+        // Button sekarang diambil dari layout
         val btnAdd = dialogView.findViewById<Button>(R.id.btnAdd)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .create()
 
+        // Background transparan biar rounded corner CardView kelihatan
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
+        // Tombol Batal
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // Tombol Tambah
         btnAdd.setOnClickListener {
             val name = etName.text.toString()
             val muscle = etMuscle.text.toString()

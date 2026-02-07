@@ -3,6 +3,7 @@ package com.example.gyme
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
@@ -91,7 +92,9 @@ class TrackerFragment : Fragment() {
             if (isTracking) stopTracking() else checkPermissionAndStart()
         }
 
-        binding.btnHistory.setOnClickListener { showHistoryDialog() }
+        binding.btnHistory.setOnClickListener {
+            val intent = Intent(requireContext(), HistoryActivity::class.java)
+            startActivity(intent) }
     }
 
     // ... (setupMap, setupLocationCallback SAMA) ...

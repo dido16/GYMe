@@ -3,36 +3,114 @@ package com.example.gyme
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.gyme.data.AppDatabase
+import com.example.gyme.data.WeightHistory
 import com.example.gyme.databinding.ActivityProfileBinding
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.ValueFormatter
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ProfileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfileBinding
+    private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        loadAndDisplayData()
+        database = AppDatabase.getDatabase(this)
 
-        // Tombol Kembali
+        loadAndDisplayData()
+        setupChartStyle() // Setup tampilan awal chart
+        loadChartData()   // Load data grafik dari DB
+
         binding.btnBack.setOnClickListener { finish() }
 
-        // Tombol Edit
         binding.btnEditProfile.setOnClickListener {
             showEditDialog()
         }
     }
 
+    // --- FUNGSI CHART ---
+    private fun setupChartStyle() {
+        val chart = binding.weightChart
+
+        // Matikan interaksi ribet biar bersih
+        chart.description.isEnabled = false
+        chart.legend.isEnabled = false
+        chart.setTouchEnabled(true)
+        chart.isDragEnabled = true
+        chart.setScaleEnabled(false)
+        chart.setPinchZoom(false)
+
+        // Hilangkan Grid & Border
+        chart.xAxis.setDrawGridLines(false)
+        chart.axisLeft.setDrawGridLines(true)
+        chart.axisRight.isEnabled = false
+        chart.axisLeft.textColor = Color.parseColor("#666666")
+        chart.xAxis.textColor = Color.parseColor("#666666")
+        chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+
+        // Format tanggal di bawah (Sumbu X)
+        chart.xAxis.valueFormatter = object : ValueFormatter() {
+            private val sdf = SimpleDateFormat("dd/MM", Locale.getDefault())
+            override fun getFormattedValue(value: Float): String {
+                return sdf.format(Date(value.toLong()))
+            }
+        }
+    }
+
+    private fun loadChartData() {
+        lifecycleScope.launch {
+            val historyList = database.weightDao().getAllWeights()
+
+            if (historyList.isNotEmpty()) {
+                val entries = historyList.map {
+                    Entry(it.dateInMillis.toFloat(), it.weightKg)
+                }
+
+                val dataSet = LineDataSet(entries, "Berat Badan")
+
+                // STYLING GARIS
+                dataSet.color = ContextCompat.getColor(this@ProfileActivity, R.color.gym_accent)
+                dataSet.lineWidth = 3f
+                dataSet.setCircleColor(Color.WHITE)
+                dataSet.circleRadius = 4f
+                dataSet.setDrawCircleHole(false)
+                dataSet.valueTextColor = Color.WHITE
+                dataSet.valueTextSize = 10f
+                dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+
+                // Efek Fill
+                dataSet.setDrawFilled(true)
+                val fillDrawable = ContextCompat.getDrawable(this@ProfileActivity, R.drawable.gradient_chart_fill)
+                dataSet.fillDrawable = fillDrawable
+
+                val lineData = LineData(dataSet)
+                binding.weightChart.data = lineData
+                binding.weightChart.invalidate()
+            } else {
+                binding.weightChart.clear()
+            }
+        }
+    }
+
+    // --- FUNGSI LOAD DATA ---
     private fun loadAndDisplayData() {
         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val weight = sharedPref.getFloat("weight", 60f)
@@ -40,17 +118,15 @@ class ProfileActivity : AppCompatActivity() {
         val age = sharedPref.getInt("age", 20)
         val isMale = sharedPref.getBoolean("is_male", true)
 
-        // 1. Set Basic Data
-        binding.tvWeight.text = weight.toInt().toString() // Tampilkan bulat biar rapi
+        binding.tvWeight.text = weight.toInt().toString()
         binding.tvHeight.text = height.toInt().toString()
         binding.tvAge.text = age.toString()
 
-        // 2. Hitung BMI
         val heightInMeter = height / 100
         val bmi = weight / (heightInMeter * heightInMeter)
 
         binding.tvBmiScore.text = "%.1f".format(bmi)
-        binding.pbBmi.progress = bmi.toInt() // Update visual bar
+        binding.pbBmi.progress = bmi.toInt()
 
         val bmiStatus = when {
             bmi < 18.5 -> "Underweight"
@@ -60,83 +136,76 @@ class ProfileActivity : AppCompatActivity() {
         }
         binding.tvBmiStatus.text = bmiStatus
 
-        // Ganti warna teks status berdasarkan kondisi
         val statusColor = when {
-            bmi < 18.5 -> Color.parseColor("#FFC107") // Kuning
-            bmi < 24.9 -> Color.parseColor("#4CAF50") // Hijau
-            else -> Color.parseColor("#FF5722") // Oranye/Merah
+            bmi < 18.5 -> Color.parseColor("#FFC107")
+            bmi < 24.9 -> Color.parseColor("#4CAF50")
+            else -> Color.parseColor("#FF5722")
         }
         binding.tvBmiStatus.setTextColor(statusColor)
 
-
-        // 3. Hitung BMR (Mifflin-St Jeor)
-        val bmr = if (isMale) {
-            (10 * weight) + (6.25 * height) - (5 * age) + 5
-        } else {
-            (10 * weight) + (6.25 * height) - (5 * age) - 161
-        }
-
-        // 4. Hitung TDEE (Asumsi Moderate Activity x1.55)
+        val bmr = if (isMale) (10 * weight) + (6.25 * height) - (5 * age) + 5 else (10 * weight) + (6.25 * height) - (5 * age) - 161
         val tdee = (bmr * 1.55)
 
         binding.tvBmr.text = bmr.toInt().toString()
         binding.tvTdee.text = tdee.toInt().toString()
     }
 
-    // Dialog Edit Data (Re-use konsep Custom Dialog)
+    // --- DIALOG EDIT (UPDATE) ---
     private fun showEditDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_workout, null)
-        // Note: Kita pakai layout 'dialog_add_workout' sementara karena isinya mirip (input fields)
-        // Tapi idealnya bikin layout khusus 'dialog_edit_profile.xml'
-        // Untuk sekarang kita modif via code aja biar cepet
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_profile, null)
 
-        val et1 = dialogView.findViewById<EditText>(R.id.etExerciseName)
-        val et2 = dialogView.findViewById<EditText>(R.id.etMuscleGroup)
-        val et3 = dialogView.findViewById<EditText>(R.id.etSets)
-        val et4 = dialogView.findViewById<EditText>(R.id.etReps)
-        val et5 = dialogView.findViewById<EditText>(R.id.etImageUrl)
-        val btnSave = dialogView.findViewById<Button>(R.id.btnAdd)
+        val etWeight = dialogView.findViewById<EditText>(R.id.etEditWeight)
+        val etHeight = dialogView.findViewById<EditText>(R.id.etEditHeight)
+        val etAge = dialogView.findViewById<EditText>(R.id.etEditAge)
+        val btnSave = dialogView.findViewById<Button>(R.id.btnSaveProfile)
 
-        // Ubah Hint agar sesuai konteks Profile
-        et1.hint = "Berat Badan (kg)"
-        et1.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-
-        et2.hint = "Tinggi Badan (cm)"
-        et2.inputType = android.text.InputType.TYPE_CLASS_NUMBER
-
-        et3.hint = "Umur (thn)"
-        et3.inputType = android.text.InputType.TYPE_CLASS_NUMBER
-
-        // Sembunyikan field yang tidak perlu
-        et4.visibility = android.view.View.GONE
-        et5.visibility = android.view.View.GONE
-
-        btnSave.text = "SIMPAN PERUBAHAN"
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel) // Pastikan ID ini ada di XML
 
         // Pre-fill data lama
         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        et1.setText(sharedPref.getFloat("weight", 0f).toString())
-        et2.setText(sharedPref.getFloat("height", 0f).toString())
-        et3.setText(sharedPref.getInt("age", 0).toString())
+        etWeight.setText(sharedPref.getFloat("weight", 0f).toString())
+        etHeight.setText(sharedPref.getFloat("height", 0f).toString())
+        etAge.setText(sharedPref.getInt("age", 0).toString())
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
+        // Logic Tombol Batal
+        btnCancel?.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // Logic Tombol Simpan
         btnSave.setOnClickListener {
-            val wStr = et1.text.toString()
-            val hStr = et2.text.toString()
-            val aStr = et3.text.toString()
+            val wStr = etWeight.text.toString()
+            val hStr = etHeight.text.toString()
+            val aStr = etAge.text.toString()
 
             if (wStr.isNotEmpty() && hStr.isNotEmpty() && aStr.isNotEmpty()) {
+                val newWeight = wStr.toFloat()
+
+                // 1. Simpan ke SharedPreferences
                 val editor = sharedPref.edit()
-                editor.putFloat("weight", wStr.toFloat())
+                editor.putFloat("weight", newWeight)
                 editor.putFloat("height", hStr.toFloat())
                 editor.putInt("age", aStr.toInt())
                 editor.apply()
 
-                loadAndDisplayData() // Refresh Tampilan
+                // 2. SIMPAN KE DATABASE (Untuk Grafik)
+                lifecycleScope.launch {
+                    val weightEntry = WeightHistory(
+                        dateInMillis = System.currentTimeMillis(),
+                        weightKg = newWeight
+                    )
+                    database.weightDao().insert(weightEntry)
+
+                    // Refresh data
+                    loadAndDisplayData()
+                    loadChartData() // Refresh grafik
+                }
+
                 Toast.makeText(this, "Profil Diupdate!", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             } else {

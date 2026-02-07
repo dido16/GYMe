@@ -22,5 +22,5 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNav.setupWithNavController(navController)
     }
 
-    // HAPUS SEMUA KODE LAINNYA! (Karena sudah pindah ke GymFragment)
+
 }
